@@ -1,80 +1,154 @@
-# IAPipeline3DLOCAL V2 — pipeline « monstres » 100 % locale
+# IAPipeline3DLOCAL V3 — pipeline « monstres » 100 % locale
 
-Pipeline qui transforme **une fiche texte** en **monstre 3D texturé et animé**, sans intervention
-humaine, sur **une seule carte graphique grand public** (RTX 3080, 10 Go).
+Pipeline qui transforme **une fiche texte** en **monstre 3D texturé et animé (marche en boucle), prêt pour un moteur
+de jeu**, sans intervention humaine, sur **une seule carte graphique grand public** (RTX 3080, 10 Go).
 
-C'est la première « usine à contenu » d'un futur jeu où chaque monstre et chaque objet est généré pour
-un joueur, puis jeté. La vision complète est dans [`VISION.md`](VISION.md). Ce README s'adresse aux
-**développeurs** : comment c'est construit, comment l'installer, comment le faire tourner, et
-**comment en dériver une pipeline plus simple** (par exemple des meubles, §8).
+C'est la première « usine à contenu » d'un futur jeu où chaque monstre est généré pour un joueur, puis jeté (vision :
+[`VISION_DU_PREMIER_JEU(POC).md`](VISION_DU_PREMIER_JEU(POC).md)).
 
-> État : 11 octobre 2026. La chaîne complète tourne **seule, de la fiche au `.glb` animé prêt pour un moteur de jeu**,
-> en une commande (`bench/fabrique_monstre.sh`, environ 40 min par monstre). Seule action animée : la marche. Voir §7.
+> État : 11 octobre 2026. Une commande (`bench/fabrique_monstre.sh <id>`) va de la fiche au `.glb` animé, en environ
+> 40 min. Seule action animée : la marche. Validé sur deux monstres neufs (pieuvre à épée, Pennywise). Voir §7.
+
+**Ce document est écrit pour être exécuté par un agent IA autant que lu par un humain.** La partie A dit exactement
+quoi faire et comment obtenir le meilleur résultat ; la partie B (§1 à §9) est la référence détaillée.
 
 ---
 
-## Démarrage rapide : un monstre en une commande
+# PARTIE A — GUIDE OPÉRATIONNEL (agents : lire en entier avant d'agir)
 
-Une fois l'installation faite (§5), une seule commande va de la fiche du monstre au `.glb` animé prêt pour le jeu.
+## A.1 Objectif et point d'entrée unique
 
-### 1. Écrire la fiche `bench/jobs/<id>.json`
+- **Tâche type** : « fabrique le monstre X » → écrire `bench/jobs/<id>.json`, lancer
+  `bash bench/fabrique_monstre.sh <id>`, attendre, vérifier `bench/out/<id>/final/`.
+- **N'appelez pas les scripts d'étape un par un** sauf pour réparer une étape précise (A.6) : `fabrique_monstre.sh`
+  enchaîne tout dans le bon ordre, avec les bons environnements Python, et **reprend là où il s'est arrêté**.
+- Plateforme : **Windows + Git Bash**. Depuis PowerShell, `bash` lance WSL, pas Git Bash : utilisez
+  `"C:\Program Files\Git\bin\bash.exe"`. Lancez toujours depuis la **racine du projet** (celle qui contient `bench/`,
+  `.venv*`, `third_party/`).
 
-C'est la seule étape manuelle pour l'instant (à terme, un LLM « créateur » l'écrira). Exemple réel :
+## A.2 Vérifications AVANT de lancer (sinon : lenteur x7 ou échec)
+
+| Vérifier | Commande | Attendu |
+|---|---|---|
+| La carte graphique est libre | `nvidia-smi --query-gpu=memory.used,utilization.gpu --format=csv` | < 2 Go utilisés, ~0 % ; **aucun autre calcul en cours** |
+| Aucune scène 3D lancée (jeu, scène Godot, Blender interactif) | gestionnaire de tâches | rien. L'éditeur Godot seul ne gêne pas ; une scène lancée rend Qwen-Image et Pixal3D jusqu'à 7 fois plus lents |
+| Assez de RAM libre | — | ≥ 20 Go libres (Wan 14B monte à ~24 Go pendant son chargement) |
+| Les environnements existent | `ls .venv*/Scripts/python.exe` | `.venv`, `.venv-trellis2`, `.venv-pixal3d`, `.venv-unimate` (§5.3) |
+| La fiche existe | `ls bench/jobs/<id>.json` | présente, JSON valide (A.3) |
+
+**Un seul calcul GPU à la fois.** Ne lancez jamais deux fabrications en parallèle, ni un autre script GPU pendant une
+fabrication : 10 Go de VRAM ne suffisent pas, tout déborde en mémoire partagée.
+
+## A.3 Écrire la fiche `bench/jobs/<id>.json` — ce qui fait la qualité du résultat
+
+La fiche est la **seule entrée** : la qualité finale dépend surtout d'elle. Exemple réel complet :
 `bench/jobs/v3_pennywise.json`.
 
 ```json
 {
   "id": "v3_monmonstre",
-  "concept": "Full-body concept art of ... Seen strictly from the front: it faces the camera straight on, in a symmetrical standing pose. Rig-ready pose: every limb clearly separated from the body and from the others. One single creature, centered, the whole body visible from head to feet. Plain uniform light grey studio background, no floor, no pedestal, no cast shadow, soft even studio lighting.",
-  "desc_courte": "courte description en anglais, AVEC le nombre de chaque partie (four arms, three heads, two wings...)",
+  "concept": "Full-body concept art of <le monstre, en phrases complètes : silhouette, matières, couleurs, chaque partie avec son nombre>. Seen strictly from the front: it faces the camera straight on, in a symmetrical standing pose. Rig-ready pose: every limb clearly separated from the body and from the others, with a visible gap, held objects held away from the body. One single creature, centered, the whole body visible from head to feet. Plain uniform light grey studio background, no floor, no ground, no pedestal, no cast shadow, soft even studio lighting.",
+  "desc_courte": "<une phrase en anglais, 15 à 35 mots, AVEC le nombre de chaque partie en toutes lettres : four arms, three heads, two wings, four legs>",
   "garde": "",
   "vues": {}
 }
 ```
 
-| Champ | Utilisé par | À savoir |
+| Champ | Rôle | Règles pour le meilleur résultat |
 |---|---|---|
-| `id` | toute la chaîne | même nom que le fichier, sert de nom de dossier dans `bench/out/` |
-| `concept` | génération des concepts (Qwen-Image) | phrases complètes ; garder « strictly from the front », la règle de pose (membres séparés du corps) et le fond uni |
-| `desc_courte` | choix du concept, vidéos Wan, allure de marche | **écrire les nombres** (« four arms ») : le juge des concepts les vérifie et l'allure de marche les impose à Wan |
-| `garde`, `vues` | non utilisés par la chaîne actuelle | doivent exister (lus au chargement) mais peuvent rester vides : `""` et `{}` |
+| `id` | nom du dossier `bench/out/<id>/` | identique au nom du fichier ; minuscules, sans espace (convention : `v3_<nom>`) |
+| `concept` | prompt des images de concept (Qwen-Image-2.1) | **phrases complètes** (bien meilleur que des mots-clés) ; garder **telles quelles** les phrases de cadrage de l'exemple : vue strictement de face, pose « membres séparés », corps entier, une seule créature, fond gris uni sans sol ni ombre |
+| `desc_courte` | relue par le juge des concepts, les vidéos Wan et l'allure de marche | **nombres en toutes lettres** (« four arms ») : le juge rejette les concepts au mauvais compte, et l'allure impose ces nombres à Wan (sans eux, Wan a fait perdre 2 bras sur 4 à un monstre) |
+| `garde`, `vues` | héritage, non utilisés | doivent exister (lus au chargement) ; laisser `""` et `{}` |
 
-### 2. Lancer la fabrication
+Règles de conception (tirées des essais) :
 
-Depuis **Git Bash**, à la racine du projet :
+- **Membres séparés du corps** (A-pose, pattes en étoile) : sinon la 3D soude les bras au tronc et l'animation crée
+  des « membranes ».
+- **Complexité maximale ≈ Slenderman / araignée** : au-delà (dizaines de tentacules fines, essaims, parties
+  minuscules), la 3D et l'animation se dégradent.
+- **Une seule créature, aucun décor**, objets tenus **écartés** du corps.
+- Pas de parties ambiguës (« some arms », « many legs ») : donnez un nombre.
+
+## A.4 Lancer et suivre
+
+Depuis Git Bash, à la racine :
 
 ```bash
-bash bench/fabrique_monstre.sh v3_monmonstre
+bash bench/fabrique_monstre.sh v3_monmonstre                       # graines des concepts par défaut : 31337 31474 31611
+bash bench/fabrique_monstre.sh v3_monmonstre "101 202 303"         # autres graines (seulement si aucun concept n'existe encore)
 ```
 
-Depuis **PowerShell**, en tâche détachée (conseillé, la fabrication dure environ 40 minutes) :
+Depuis PowerShell, **en tâche détachée** (conseillé : environ 40 min) :
 
 ```powershell
 Start-Process "C:\Program Files\Git\bin\bash.exe" -ArgumentList '-c', 'cd \"/c/chemin/vers/le/projet\" && bash bench/fabrique_monstre.sh v3_monmonstre > bench/out/_fabrique_v3_monmonstre.log 2>&1'
 ```
 
-L'avancement se suit dans `bench/out/_fabrique_<id>.log` : une ligne par étape, avec l'heure.
+Suivi : `bench/out/_fabrique_<id>.log` reçoit **une ligne par étape, avec l'heure** ; le détail de chaque étape est
+dans `bench/out/<id>_fabrique_<étape>.log`. Interrogez le journal **toutes les 2 à 5 minutes**, pas plus souvent.
 
-### 3. Récupérer le résultat
+| Étape (ligne du journal) | Durée normale | Résultat qui la marque comme faite |
+|---|---|---|
+| 1. concepts | ~4 min | `bench/inputs/q21_<id>_nat/cand_*.png` |
+| 2. choix du concept | ~1 min | `bench/inputs/q21_<id>_nat/choix.json` |
+| 3. vidéo de tour, vues, 3D, texture | ~21 min | `bench/out/<id>/tex_p3d.glb` |
+| 4. directeur | ~3 min | `bench/out/<id>/directeur2/rapport.txt` |
+| 5. marche | ~8 min (+4 si la 1re graine est rejetée) | `bench/out/<id>/rdmesh_marche_trajs.npz` |
+| 6. boucle de marche | < 10 s | `bench/out/<id>/rdmesh_marche_boucle.npz` |
+| 7. export jeu | ~1 min | `bench/out/<id>/final/<id>_marche.glb` |
+
+Fin normale : la dernière ligne est `######## <id> MONSTRE TERMINÉ`. Une ligne `ECHEC ...` signale un arrêt : voir A.6.
+
+## A.5 Vérifier le résultat
 
 Dans `bench/out/<id>/final/` :
 
-- `<id>_marche.glb` : le monstre qui marche en boucle, texturé (couleur + normal map), prêt pour Godot ;
-- `<id>_marche.json` : durée du cycle et **vitesse** à laquelle le jeu doit faire avancer le monstre (l'avancée est
-  retirée de l'animation) ;
-- le GIF de contrôle (vidéo Wan + animation), aussi copié dans `bench/out/animations_gif/marche_<id>.gif`.
+- `<id>_marche.glb` : le monstre qui marche **en boucle, sans avancer**, texturé (couleur + normal map 2048 px),
+  environ 16 000 triangles. Animation nommée `marche`.
+- `<id>_marche.json` : `duree_s` (cycle), `vitesse_unites_par_s` et `direction_xy` → **le jeu déplace le monstre à
+  cette vitesse** (l'avancée a été retirée de l'animation).
+- `marche_<id>.gif` (aussi dans `bench/out/animations_gif/`) : vidéo Wan + animation vue de la caméra et à 45°.
 
-### Bon à savoir
+Contrôle à faire (et à montrer à l'humain, **qui a le dernier mot sur la qualité**) :
 
-- **Reprise automatique** : si la commande s'arrête sur une erreur (exemple vu : plantage ponctuel de SDXL sur les
-  argiles), relancez-la telle quelle : chaque étape déjà faite est sautée.
-- **Pas de scène Godot ni de jeu ouvert pendant une fabrication** : Qwen-Image et Pixal3D débordent alors de la
-  mémoire de la carte graphique et deviennent jusqu'à 7 fois plus lents. L'éditeur Godot seul (sans scène lancée) ne
-  gêne pas.
-- Pour relancer une étape précise, supprimez son résultat (voir l'en-tête de `bench/fabrique_monstre.sh`) puis
-  relancez la commande.
+- `bench/inputs/q21_<id>_nat/choix.json` → le concept retenu a les bons nombres de parties (`nombres` : [compté, attendu]).
+- Le GIF → le monstre de la vidéo Wan garde **toutes ses parties** pendant toute la vidéo (de profil, des parties
+  cachées peuvent disparaître sans alerte : c'est la limite connue n° 1) ; les pas sont lisibles.
+- `bench/out/<id>_fabrique_export.log` → ligne `[cuisson] alignement ... médiane` inférieure à 0.01.
+- `<id>_marche.json` → `ecart_avant_correction` inférieur à ~0.06 (sinon la jonction de la boucle se voit un peu).
+
+## A.6 En cas d'échec ou de mauvais résultat
+
+**Règle générale : relancez la même commande.** Chaque étape déjà faite est sautée. Pour **refaire** une étape,
+supprimez son résultat (colonne de droite du tableau A.4) — et les fichiers ci-dessous — puis relancez.
+
+| Symptôme | Cause probable | Action |
+|---|---|---|
+| `Segmentation fault` dans `exp_vues_3d.py` (argiles) | plantage ponctuel de SDXL | relancer tel quel |
+| Une étape prend 3 à 7 fois sa durée normale | VRAM saturée (scène 3D ouverte, autre calcul, overlays) ou RAM saturée | arrêter la source, puis relancer |
+| `ECHEC : aucune image de dos dans la video de tour` | Wan n'a pas fait le tour complet | le script génère une suite automatiquement ; si l'échec persiste, supprimer `bench/out/<id>/video_tour*` et relancer |
+| Le concept retenu a un nombre faux de parties | aucun des 3 candidats n'était bon | supprimer `bench/inputs/q21_<id>_nat/`, relancer avec d'autres graines ; si ça se répète, rendre `concept` plus explicite |
+| Le monstre perd ou gagne des parties dans la vidéo de marche | dérive de Wan | supprimer `marche_allure.txt`, `video_marche_s*`, `rdmesh_marche*` dans `bench/out/<id>/`, puis relancer (nouvelle allure et nouvelles vidéos) |
+| La marche avance vers la caméra / sort du cadre | contrôles de la vidéo échoués sur les 2 graines (la meilleure est gardée) | même action que ci-dessus |
+| Texture cuite très sombre ou noire | matériau métallique non neutralisé, ou modèle complet mal aligné | vérifier `[cuisson] alignement` dans le journal d'export ; supprimer `final/` et relancer |
+
+## A.7 Règles impératives pour un agent
+
+- **Ne modifiez pas les réglages de qualité** (nombre d'étapes de Pixal3D, de Qwen-Image, réglages de R-DMesh) pour
+  gagner du temps : essayé, le détail se perd pour 2-3 minutes gagnées (verdict humain du 2026-10-11).
+- **Un seul calcul GPU à la fois** ; **ne tuez jamais de processus par motif large** (ex. tous ceux qui contiennent
+  l'id) : listez-les, puis tuez par PID.
+- **Ne lancez pas de scène 3D** (Godot, jeu) pendant une fabrication.
+- **Le verdict qualité appartient à l'humain** : montrez-lui le GIF avant de déclarer un monstre réussi. Les mesures
+  automatiques ont souvent trompé (voir §2.2, point 7).
+- **Ne refaites pas un essai écarté** (§7, liste « Essais écartés ») sans raison nouvelle.
+- **Git** : ne poussez rien vous-même ; préparez les changements et laissez le propriétaire du dépôt pousser.
+- Blender en mode batch : **chemins de sortie absolus** (`$(pwd -W)/...`).
 
 ---
+
+# PARTIE B — RÉFÉRENCE
 
 ## Sommaire
 
@@ -210,9 +284,8 @@ bench/
   - il **suppose une caméra de face** : on **pivote le maillage** du même angle que la caméra de la
     vidéo avant de le lui donner (`geo_16k_profil.glb`, fait par `chaine_marche.sh`) ;
   - une créature sombre est éclaircie au gamma, sinon elle disparaît sur le fond noir.
-- **Fiche** (`bench/jobs/<id>.json`) : `concept` (prompt complet en phrases, avec la règle de pose et
-  « strictly from the front »), `desc_courte` (réutilisée dans tous les prompts vidéo), `garde`,
-  `vues`.
+- **Fiche** (`bench/jobs/<id>.json`) : voir A.3 (`concept` et `desc_courte` servent ; `garde` et `vues` peuvent être
+  vides).
 
 ## 5. Installation
 
@@ -324,10 +397,10 @@ gros modèle.
 
 Depuis Git Bash, à la racine. La fabrication est longue (~40 min) : lancez-la **détachée**. Depuis PowerShell, le
 plus sûr est un petit script `lance.sh` qui contient `cd <racine> && bash bench/fabrique_monstre.sh "$1" > bench/out/_fabrique_$1.log 2>&1`,
-puis `Start-Process "C:\Program Files\Gitinash.exe" -ArgumentList @("C:/chemin/lance.sh", "v3_quadrupede")`.
+puis `Start-Process "C:\Program Files\Git\bin\bash.exe" -ArgumentList @("C:/chemin/lance.sh", "v3_quadrupede")`.
 
 ```bash
-# Prérequis : la fiche bench/jobs/<id>.json (voir « Démarrage rapide » en tête de ce README).
+# Prérequis : la fiche bench/jobs/<id>.json (voir A.3).
 # Tout, de la fiche au monstre animé pour le jeu (reprise automatique : relancez la même commande après une erreur)
 bash bench/fabrique_monstre.sh v3_quadrupede            # graines des concepts : 31337 31474 31611 par défaut
 #    -> bench/out/v3_quadrupede/final/v3_quadrupede_marche.glb  (+ .json : durée du cycle, vitesse de marche)
@@ -368,7 +441,7 @@ alors en mémoire partagée et deviennent jusqu'à 7 fois plus lents (essai du 2
 | Boucle de marche | ✅ cycle de 1,5 à 1,9 s ; R-DMesh ne lit que 2 s de vidéo (~1 cycle), d'où un écart de jonction de 2 à 6 % de la taille, réparti sur le cycle |
 | Chaîne complète `fabrique_monstre.sh` | ✅ deux monstres neufs fabriqués sans intervention (pieuvre à épée, Pennywise) ; un plantage ponctuel de SDXL (argiles) a été réglé par simple relance |
 | Contrôles de marche | ⚠ test de périodicité approximatif (rapporté, hors décision) |
-| Autres actions (repos, attaque…), sons, code de comportement | à faire (voir `VISION.md`) |
+| Autres actions (repos, attaque…), sons, code de comportement | à faire (voir `VISION_DU_PREMIER_JEU(POC).md`) |
 
 Essais **écartés**, à ne pas refaire sans raison nouvelle :
 
@@ -443,7 +516,7 @@ s'allumer…). Voici quoi garder, quoi retirer et quoi ajouter.
 
    Il écrit un script (`on_interact` → `play("open")`, inventaire de 6 cases, etc.) et un
    `manifeste.json`.
-5. **Harnais de validation** (même principe que pour les monstres, voir `VISION.md` §6) :
+5. **Harnais de validation** (même principe que pour les monstres, voir `VISION_DU_PREMIER_JEU(POC).md`) :
    - le script ne cite que des fonctions et des clips qui existent ;
    - il passe un test en simulation sans affichage (ouvrir, fermer, ranger, retirer) ;
    - sinon l'erreur est renvoyée au LLM (2-3 essais), puis on bascule sur un **comportement
