@@ -245,7 +245,9 @@ Ce que font les correctifs :
 | Encodeur texte umt5-xxl Q8_0 (GGUF) | `…/models/text_encoders/` | dépôt GGUF umt5 (ex. city96) |
 | VAE Wan 2.2 / 2.1 | `…/models/vae/` | Comfy-Org repackaged |
 | Pixal3D multi-vues (`ckpts/*_mv`, forme + texture) | `…/models/TencentARC/Pixal3D/ckpts/` | `TencentARC/Pixal3D` |
-| TRELLIS.2 FP8 + DINOv3 + `shape_enc` + décodeur `ss_dec_conv3d_16l8_fp16` | `…/models/visualbruno/`, `…/models/facebook/`, `…/models/microsoft/` | `visualbruno/TRELLIS.2-4B-FP8`, `microsoft/TRELLIS.2-4B`, `microsoft/TRELLIS-image-large` |
+| DINOv3 ViT-L/16 (lecture des vues par Pixal3D) | `…/models/facebook/dinov3-vitl16-pretrain-lvd1689m/` | `visualbruno/dinov3-vitl16-pretrain-lvd1689m` (téléchargé par les nœuds au premier lancement) |
+| Encodeur de forme TRELLIS.2 (`ckpts/shape_enc_next_dc_f16c32_fp16.{json,safetensors}` seulement : Pixal3D en a besoin pour texturer un maillage existant) | `…/models/microsoft/TRELLIS.2-4B/ckpts/` | `microsoft/TRELLIS.2-4B` (téléchargé par les nœuds au premier lancement) |
+| MoGe-2 ViT-L (estimation de la caméra des vues, chargé par Pixal3D) | `…/models/Ruicheng/moge-2-vitl/` | `Ruicheng/moge-2-vitl` (téléchargé par les nœuds au premier lancement) |
 | SDXL base 1.0 + ControlNet Canny SDXL | cache HF (`models/`) | `stabilityai/stable-diffusion-xl-base-1.0`, `diffusers/controlnet-canny-sdxl-1.0` |
 | Qwen3-VL-4B-Instruct | cache HF | `Qwen/Qwen3-VL-4B-Instruct` |
 | BiRefNet DIS5K (détourage GPU) | cache HF | `ZhengPeng7/BiRefNet-DIS5K` (téléchargé par `masque_gpu.py`) |
