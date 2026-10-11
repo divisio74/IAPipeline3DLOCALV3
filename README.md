@@ -13,6 +13,69 @@ un joueur, puis jeté. La vision complète est dans [`VISION.md`](VISION.md). Ce
 
 ---
 
+## Démarrage rapide : un monstre en une commande
+
+Une fois l'installation faite (§5), une seule commande va de la fiche du monstre au `.glb` animé prêt pour le jeu.
+
+### 1. Écrire la fiche `bench/jobs/<id>.json`
+
+C'est la seule étape manuelle pour l'instant (à terme, un LLM « créateur » l'écrira). Exemple réel :
+`bench/jobs/v3_pennywise.json`.
+
+```json
+{
+  "id": "v3_monmonstre",
+  "concept": "Full-body concept art of ... Seen strictly from the front: it faces the camera straight on, in a symmetrical standing pose. Rig-ready pose: every limb clearly separated from the body and from the others. One single creature, centered, the whole body visible from head to feet. Plain uniform light grey studio background, no floor, no pedestal, no cast shadow, soft even studio lighting.",
+  "desc_courte": "courte description en anglais, AVEC le nombre de chaque partie (four arms, three heads, two wings...)",
+  "garde": "",
+  "vues": {}
+}
+```
+
+| Champ | Utilisé par | À savoir |
+|---|---|---|
+| `id` | toute la chaîne | même nom que le fichier, sert de nom de dossier dans `bench/out/` |
+| `concept` | génération des concepts (Qwen-Image) | phrases complètes ; garder « strictly from the front », la règle de pose (membres séparés du corps) et le fond uni |
+| `desc_courte` | choix du concept, vidéos Wan, allure de marche | **écrire les nombres** (« four arms ») : le juge des concepts les vérifie et l'allure de marche les impose à Wan |
+| `garde`, `vues` | non utilisés par la chaîne actuelle | doivent exister (lus au chargement) mais peuvent rester vides : `""` et `{}` |
+
+### 2. Lancer la fabrication
+
+Depuis **Git Bash**, à la racine du projet :
+
+```bash
+bash bench/fabrique_monstre.sh v3_monmonstre
+```
+
+Depuis **PowerShell**, en tâche détachée (conseillé, la fabrication dure environ 40 minutes) :
+
+```powershell
+Start-Process "C:\Program Files\Git\bin\bash.exe" -ArgumentList '-c', 'cd \"/c/chemin/vers/le/projet\" && bash bench/fabrique_monstre.sh v3_monmonstre > bench/out/_fabrique_v3_monmonstre.log 2>&1'
+```
+
+L'avancement se suit dans `bench/out/_fabrique_<id>.log` : une ligne par étape, avec l'heure.
+
+### 3. Récupérer le résultat
+
+Dans `bench/out/<id>/final/` :
+
+- `<id>_marche.glb` : le monstre qui marche en boucle, texturé (couleur + normal map), prêt pour Godot ;
+- `<id>_marche.json` : durée du cycle et **vitesse** à laquelle le jeu doit faire avancer le monstre (l'avancée est
+  retirée de l'animation) ;
+- le GIF de contrôle (vidéo Wan + animation), aussi copié dans `bench/out/animations_gif/marche_<id>.gif`.
+
+### Bon à savoir
+
+- **Reprise automatique** : si la commande s'arrête sur une erreur (exemple vu : plantage ponctuel de SDXL sur les
+  argiles), relancez-la telle quelle : chaque étape déjà faite est sautée.
+- **Pas de scène Godot ni de jeu ouvert pendant une fabrication** : Qwen-Image et Pixal3D débordent alors de la
+  mémoire de la carte graphique et deviennent jusqu'à 7 fois plus lents. L'éditeur Godot seul (sans scène lancée) ne
+  gêne pas.
+- Pour relancer une étape précise, supprimez son résultat (voir l'en-tête de `bench/fabrique_monstre.sh`) puis
+  relancez la commande.
+
+---
+
 ## Sommaire
 
 1. [Ce que fait la pipeline](#1-ce-que-fait-la-pipeline)
@@ -264,7 +327,7 @@ plus sûr est un petit script `lance.sh` qui contient `cd <racine> && bash bench
 puis `Start-Process "C:\Program Files\Gitinash.exe" -ArgumentList @("C:/chemin/lance.sh", "v3_quadrupede")`.
 
 ```bash
-# Prérequis : la fiche bench/jobs/<id>.json (concept, desc_courte, garde, vues), écrite par le LLM « créateur ».
+# Prérequis : la fiche bench/jobs/<id>.json (voir « Démarrage rapide » en tête de ce README).
 # Tout, de la fiche au monstre animé pour le jeu (reprise automatique : relancez la même commande après une erreur)
 bash bench/fabrique_monstre.sh v3_quadrupede            # graines des concepts : 31337 31474 31611 par défaut
 #    -> bench/out/v3_quadrupede/final/v3_quadrupede_marche.glb  (+ .json : durée du cycle, vitesse de marche)
