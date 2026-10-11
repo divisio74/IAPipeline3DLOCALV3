@@ -1,0 +1,609 @@
+diff --git a/README.md b/README.md
+index 31efb98..b07186d 100644
+--- a/README.md
++++ b/README.md
+@@ -1,309 +1,35 @@
+-<div align="center">
+-  <img src="https://github.com/R-DMesh/R-DMesh.github.io/blob/main/assets/logo.png" width="150px">
+-
+-</div>
+-
+-<div align="center">
+-  <h1>R-DMesh: Video-Guided 3D Animation via Rectified Dynamic Mesh Flow (SIGGRAPH 2026)</h1>
+-  
+-  
+-</div>
+-
+-
+-
++---
++license: apache-2.0
++language:
++- en
++tags:
++- 3D
++- animation
++- mesh
++- Feed-Forward
++- Foundation-Model
++- Siggraph2026
++pretty_name: R-DMesh
++---
+ 
+-<div align="center">
++# R-DMesh: Video-Guided 3D Animation via Rectified Dynamic Mesh Flow (Siggraph 2026)
+ 
+ Zijie Wu<sup>1,2</sup>, Lixin Xu<sup>2</sup>, Puhua Jiang<sup>2</sup>, Sicong Liu<sup>2</sup>, Chunchao Guo<sup>2</sup>, Xiang Bai<sup>1</sup> <br>
+ <sup>1</sup>Huazhong University of Science and Technology (HUST), <sup>2</sup>Tencent Hunyuan
+ 
+ <a href="https://r-dmesh.github.io/"><img src='https://img.shields.io/badge/Project-RDMesh-brightgreen?logo=github' alt='Project'></a>
+-<a href="https://arxiv.org/abs/2605.13838"><img src='https://img.shields.io/badge/arXiv-RDMesh-B31B1B?logo=arxiv' alt='Paper PDF'></a>
++<a href="https://arxiv.org/abs/"><img src='https://img.shields.io/badge/arXiv-RDMesh-B31B1B?logo=arxiv' alt='Paper PDF'></a>
+ <a href="https://youtu.be/xBrMjPnH3_w"><img src='https://img.shields.io/badge/Video-Demo-FF0000?logo=youtube' alt='Video'></a>
+-<a href="https://huggingface.co/JarrentWu/R-DMesh"><img src='https://img.shields.io/badge/HuggingFace-Model Weights-yellow?logo=huggingface' alt='Hugging Face Weights'></a>
+-<a href="https://drive.google.com/drive/folders/1yPwn2ult4T86_pIeFkhf-FPw4xcQgd3M?usp=drive_link"><img src='https://img.shields.io/badge/Google%20Drive-Model Weights-blue?logo=googledrive&logoColor=white' alt='Download from Google Drive'></a>
+-
+-</div>
+-
+-![Demo GIF](https://raw.githubusercontent.com/R-DMesh/R-DMesh.github.io/main/assets/teaser.gif)
+-
+-## 📖 Overview
+-
+-We present **R-DMesh**: a unified video-guided 4D mesh generation framework that tackles the long-overlooked pose misalignment dilemma. Given a static mesh and a reference video with arbitrary initial poses, our method automatically rectifies the mesh to the video's starting state and generates high-fidelity, temporally consistent animations. Beyond video-driven animation, R-DMesh naturally supports a wide range of downstream applications, including pose retargeting, motion retargeting, and holistic 4D generation.
+-
+-
+-## 🔥 Latest News
+-
+-* May 13, 2026: 👋 The checkpoint of **R-DMesh** has been released! Please give it a try!
+-* May 12, 2026: 👋 The training & inference code of **R-DMesh** has been released! The checkpoint will be released in a few days.
+-* Mar 28, 2026: 👋 **R-DMesh** has been accepted by [SIGGRAPH2026](https://s2026.siggraph.org/)! We will release the code asap. Please stay tuned for updates！
+-
+-## 🔧 Preparation
+-
+-### 1. Environment Setup
+-
+-```bash
+-# Create conda environment
+-conda create -n rdmesh python=3.11
+-conda activate rdmesh
+-
+-# Install torch
+-pip install torch==2.8.0 torchvision==0.23.0
+-
+-# Install dependencies
+-pip install -r requirements.txt
+-```
+-
+-### 2. Download Pretrained Models
+-
+-Download the pretrained checkpoints from [🤗 HuggingFace](https://huggingface.co/JarrentWu/R-DMesh) and place them under `./ckpts/`:
+-
+-```bash
+-# Option 1: Use huggingface-cli
+-huggingface-cli download JarrentWu/R-DMesh --local-dir ./ckpts
+-
+-# Option 2: Manually download and organize
+-```
+-
+-You also need to download [Wan2.2-TI2V-5B](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B) for video conditioning:
+-```bash
+-huggingface-cli download Wan-AI/Wan2.2-TI2V-5B --local-dir ./ckpts/Wan2.2-TI2V-5B
+-```
+-
+-### 3. Prepare Test Data
+-
+-Place your input meshes and reference videos under `./test_data/`.
+-
+-### 📂 Expected Directory Structure
+-
+-After the steps above, your project should look like this:
+-
+-```
+-R-DMesh/
+-├── test_data/
+-│   ├── meshes/                  # Input meshes (.glb or .fbx)
+-│   │   └── your_mesh.glb
+-│   │   └── your_mesh2.fbx   
+-│   └── videos/                  # Reference videos (.mp4)
+-│       └── your_video.mp4
+-└── ckpts/
+-    ├── dvae/                    # VAE checkpoints
+-    ├── rf_model/                # Rectified Flow (DiT) checkpoints
+-    ├── dvae_factor/             # VAE normalization factors
+-    └── Wan2.2-TI2V-5B/          # Wan video model
+-```
+-
+-## 📖 Inference
+-
+-### 🎬 Animate a Mesh with Reference Video
+-
+-```bash
+-python test_drive.py \
+-    --mesh_list your_mesh.glb \
+-    --video_list your_video.mp4 \
+-    --rf_exp rdmeshdit --rf_epoch f \
+-    --num_hops 5 --alpha_hops 0.7 \
+-    --num_traj 4096 --guidance_scale 1.5 \
+-    --export
+-```
+-
+-> 💡 The command above assumes the [default directory structure](#-expected-directory-structure) from the Preparation section.  
+-> If your files are placed elsewhere, specify the paths explicitly:
+-
+-```bash
+-    --data_dir /your/path/to/meshes \
+-    --video_data_dir /your/path/to/videos \
+-    --vae_dir /your/path/to/dvae \
+-    --rf_model_dir /your/path/to/rf_model \
+-    --json_dir /your/path/to/dvae_factor \
+-    --wan_model_dir /your/path/to/Wan2.2-TI2V-5B
+-```
+-
+-An example is as follows, run:
+-```bash
+-python test_drive.py \
+-    --mesh_list warrok_w_kurniawan.fbx \
+-    --video_list dance7.mp4 \
+-    --rf_exp rdmeshdit --rf_epoch f \
+-    --num_hops 5 --alpha_hops 0.7 \
+-    --num_traj 4096 --guidance_scale 1.5 \
+-    --export
+-```
+-Then, you will get the dynamic mesh fbx file and a frontal rendered video, the generated 4D asset should look like:
+-
+-![Demo GIF](https://raw.githubusercontent.com/R-DMesh/R-DMesh.github.io/main/assets/warrok_demo.gif)
+-
+-> ⚠️ **Note on custom driving videos:**  
+-> If you want to use your own video to drive the mesh, please first remove the background and replace it with pure black using tools such as [SAM 3](https://github.com/facebookresearch/sam3) (or other video matting / segmentation tools) **before** running inference. Videos with cluttered or non-black backgrounds may lead to degraded motion extraction and poor animation quality.
+-
+-## 🏋️‍♂️ Training
+-
+-The complete training pipeline consists of the following **6 stages**, which must be executed **sequentially**:
+-
+-```
+-① Data Preparation  →  ② Train R-DMesh VAE  →  ③ Extract Video Latents  →  ④ Extract DMesh Latents  →  ⑤ Compute DMesh Feature Statistics  →  ⑥ Train R-DMesh DiT
+-```
+ 
+-| Stage | Step | Script | Output |
+-| :---: | :--- | :--- | :--- |
+-| ① | Data Preparation | `data_construction/` | Mesh / Video dataset |
+-| ② | Train R-DMesh VAE | `train_dvae.py` | VAE checkpoints |
+-| ③ | Extract Video Latents | `Wan2_2/save_vid_latents.py` | Video latents |
+-| ④ | Extract DMesh Latents | `save_dmesh_latents.py` | DMesh latents |
+-| ⑤ | Compute DMesh Feature Statistics | `test_vae_factor_misalign.py` | Mean / std JSON factors |
+-| ⑥ | Train R-DMesh DiT | `train_dit.py` | DiT checkpoints |
++We present <b>R-DMesh</b>: a unified video-guided 4D mesh generation framework that tackles the long-overlooked pose misalignment dilemma. Given a static mesh and a reference video with arbitrary initial poses, our method automatically rectifies the mesh to the video's starting state and generates high-fidelity, temporally consistent animations. Beyond video-driven animation, R-DMesh naturally supports a wide range of downstream applications, including pose retargeting, motion retargeting, and holistic 4D generation.
+ 
+----
+-
+-### ① Data Preparation
+-
+-Please refer to the scripts and README in the `data_construction` folder to build your training / validation data. This part of the code will be released soon.
+-
+----
+-
+-### ② Train R-DMesh VAE
+-
+-Train the R-DMesh VAE that compresses dynamic meshes into a latent space. To be noted, we adopt **PLTA attention** from [AnimateAnyMesh++](https://arxiv.org/abs/2604.26917) for better performance.
+-
+-```bash
+-torchrun --nproc_per_node=8 train_dvae.py \
+-    --data_dir /path/to/training/data \
+-    --val_data_dir /path/to/validation/data \
+-    --ckpts_dir /path/to/checkpoints \
+-    --log_dir ./logs/test \
+-    --exp test \
+-    --train_epoch 1000 --batch_size 32 --lr 1e-4 \
+-    --enc_depth 8 --dim 256 --max_length 4096 \
+-    --latent_dim 64 --latent_dim_x1 16 --num_t 64 \
+-    --num_hops 4 --hop_mode band --n_layers 2 \
+-    --sep_rec_loss --per_instance_loss \
+-    --validate --is_training
+-```
+-
+-
+-(Optional) After training, you can evaluate the reconstruction quality of the VAE using the [Test R-DMesh VAE](#test-r-dmesh-vae) script in the Evaluation section.
+-
+----
+-
+-### ③ Extract Video Latents
+-
+-Extract latent features from reference videos using the pretrained video model ([Wan2.2-TI2V-5B](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B)). These latents will serve as the conditioning signal for DiT training.
+-
+-```bash
+-torchrun --nproc_per_node=8 save_vid_latents.py \
+-    --data_dir /path/to/mesh/data \
+-    --video_data_dir /path/to/video/data \
+-    --checkpoint_dir /path/to/pretrained/models \
+-    --output_dir /path/to/output/latents \
+-    --batch_size 1 \
+-    --video_width 256 \
+-    --samp_layer 10
+-```
+-
+----
+-
+-### ④ Extract DMesh Latents
+-
+-Encode meshes into latent variables using the VAE trained in Stage ②. These latents will be used as the prediction target for DiT training.
+-
+-```bash
+-torchrun --nproc_per_node=8 save_dmesh_latents.py \
+-    --dataset_dir /path/to/dataset \
+-    --ckpt_dir /path/to/checkpoints \
+-    --output_dir /path/to/output/latents \
+-    --exp your_experiment_name \
+-    --epoch which_epoch \
+-    --max_length 8192 --batch_size 16 \
+-    --num_t 64 --num_hops 4 --num_traj 512
+-```
+-
+----
+-
+-### ⑤ Compute DMesh Feature Statistics
+-
+-Compute the per-channel **mean** and **standard deviation** of the DMesh latents produced by the VAE. These statistics are used to normalize (rescale) the latents so that their distribution is well-conditioned for DiT training. The resulting factors are saved as JSON files and later consumed by `train_dit.py` via the `--json_dir` argument.
+-
+-```bash
+-torchrun --nproc_per_node=8 test_vae_factor_misalign.py \
+-    --data_dir /path/to/training/data \
+-    --vae_dir /path/to/dvae/checkpoints \
+-    --vae_exp your_vae_experiment \
+-    --vae_epoch which_epoch \
+-    --max_length max_vertex_count --batch_size 16 \
+-    --num_hops 4 --num_t 64
+-```
+-
+----
+-
+-### ⑥ Train R-DMesh DiT
+-
+-Train the conditional Diffusion Transformer using the video latents from Stage ③, the DMesh latents from Stage ④, and the normalization factors from Stage ⑤.
+-
+-```bash
+-torchrun --nproc_per_node=8 train_dit.py \
+-    --data_dir /path/to/latent/data \
+-    --latent_data_dir /path/to/video/latents \
+-    --save_dir /path/to/checkpoints \
+-    --log_dir ./logs/test \
+-    --json_dir ./dvae_factors \
+-    --dvae_dir /path/to/dvae/checkpoints \
+-    --vae_exp your_vae_experiment \
+-    --vae_epoch which_epoch \
+-    --exp test \
+-    --batch_size 16 --max_length max_vertex_count --train_epoch 500 --lr 1e-4 \
+-    --mode vc --dit_layers 10 --cond_drop_prob 0.1 \
+-    --rescale
+-```
+-
+----
+-
+-## 🔍 Evaluation
+-
+-### Test R-DMesh VAE
+-
+-Evaluate the reconstruction quality of a trained R-DMesh VAE.
+-
+-```bash
+-python test_dvae.py \
+-    --dataset_dir /path/to/test/data \
+-    --ckpt_dir /path/to/checkpoints \
+-    --exp your_experiment_name \
+-    --epoch which_epoch \
+-    --max_length 4096 \
+-    --num_hops 4 --alpha_hops 0.5 \
+-    --render
+-```
+-    
+-## 📚 Citation
+-
+-If you find our work interesting or helpful for your research, please consider citing:
+-```bibtex
+-@inproceedings{wu2026rdmesh,
+-  title={R-DMesh: Video-Guided 3D Animation via Rectified Dynamic Mesh Flow},
+-  author={Wu, Zijie and Xu, Lixin and Jiang, Puhua and Liu, Sicong and Guo, Chunchao and Bai, Xiang},
+-  booktitle={Proceedings of the Special Interest Group on Computer Graphics and Interactive Techniques Conference Conference Papers},
+-  pages={1--12},
+-  year={2026}
+-}
+-```
+-
+-Please also consider citing [AnimateAnyMesh](https://openaccess.thecvf.com/content/ICCV2025/papers/Wu_AnimateAnyMesh_A_Feed-Forward_4D_Foundation_Model_for_Text-Driven_Universal_Mesh_ICCV_2025_paper.pdf) and [AnimateAnyMesh++](https://arxiv.org/abs/2604.26917), which inspired this work and provided techniques adopted in R-DMesh.
++## ⭐ Citation
++If you find our work useful for your research, please star this repo and cite our paper. Thanks!
+ ```bibtex
+-@inproceedings{wu2025animateanymesh,
+-  title={Animateanymesh: A feed-forward 4d foundation model for text-driven universal mesh animation},
+-  author={Wu, Zijie and Yu, Chaohui and Wang, Fan and Bai, Xiang},
+-  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
+-  pages={13557--13568},
+-  year={2025}
+-}
+-@article{wu2026animateanymesh++,
+-  title={AnimateAnyMesh++: A Flexible 4D Foundation Model for High-Fidelity Text-Driven Mesh Animation},
+-  author={Wu, Zijie and Yu, Chaohui and Wang, Fan and Bai, Xiang},
+-  journal={arXiv preprint arXiv:2604.26917},
+-  year={2026}
++@article{wu2026rdmesh,
++    author = {Wu, Zijie and Xu, Lixin and Jiang, Puhua and Liu, Sicong and Guo, Chunchao and Bai, Xiang.},
++    title  = {R-DMesh: Video-Guided 3D Animation via Rectified Dynamic Mesh Flow},
++    journal = {arXiv preprint arxiv:},
++    year   = {2026},
+ }
+ ```
+-
+-## 🙏 Acknowledgments
+-
+-Our code references some great repos, which are [AnimateAnyMesh](https://github.com/JarrentWu1031/AnimateAnyMesh), [AnimateAnyMesh++](https://github.com/JarrentWu1031/AnimateAnyMesh-pp) and [Wan2_2](https://github.com/Wan-Video/Wan2.2). We thank the authors for their excellent works! <br>
+diff --git a/Wan2_2/wan/context_null.pt b/Wan2_2/wan/context_null.pt
+index 150c279..9aeda15 100644
+Binary files a/Wan2_2/wan/context_null.pt and b/Wan2_2/wan/context_null.pt differ
+diff --git a/Wan2_2/wan/modules/attention.py b/Wan2_2/wan/modules/attention.py
+index bde0f5c..33f3dd6 100755
+--- a/Wan2_2/wan/modules/attention.py
++++ b/Wan2_2/wan/modules/attention.py
+@@ -37,6 +37,9 @@ def flash_attention(
+     version=None,
+ ):
+     """
++    PATCH pipeline IA (2026-09-30) : sans flash-attn (Windows), repli sur scaled_dot_product_attention avec un
++    masque des cles au-dela de k_lens (le padding de la sequence ne doit pas etre attendu).
++
+     q:              [B, Lq, Nq, C1].
+     k:              [B, Lk, Nk, C1].
+     v:              [B, Lk, Nk, C2]. Nq must be divisible by Nk.
+@@ -49,6 +52,18 @@ def flash_attention(
+     deterministic:  bool. If True, slightly slower and uses more memory.
+     dtype:          torch.dtype. Apply when dtype of q/k/v is not float16/bfloat16.
+     """
++    if not (FLASH_ATTN_2_AVAILABLE or FLASH_ATTN_3_AVAILABLE):
++        out_dtype = q.dtype
++        b, lq, lk = q.size(0), q.size(1), k.size(1)
++        qq, kk, vv = (t.transpose(1, 2).to(dtype) for t in (q, k, v))
++        if q_scale is not None:
++            qq = qq * q_scale
++        mask = None
++        if k_lens is not None:
++            mask = (torch.arange(lk, device=q.device)[None, :] < k_lens.to(q.device)[:, None])[:, None, None, :]
++        x = torch.nn.functional.scaled_dot_product_attention(qq, kk, vv, attn_mask=mask, is_causal=causal,
++                                                             dropout_p=dropout_p, scale=softmax_scale)
++        return x.transpose(1, 2).contiguous().type(out_dtype)
+     half_dtypes = (torch.float16, torch.bfloat16)
+     assert dtype in half_dtypes
+     assert q.device.type == 'cuda' and q.size(-1) <= 256
+diff --git a/Wan2_2/wan/modules/vae2_2.py b/Wan2_2/wan/modules/vae2_2.py
+index ddd564d..85656e6 100755
+--- a/Wan2_2/wan/modules/vae2_2.py
++++ b/Wan2_2/wan/modules/vae2_2.py
+@@ -876,8 +876,13 @@ def _video_vae(pretrained_path=None, z_dim=16, dim=160, device="cpu", **kwargs):
+ 
+     # load checkpoint
+     logging.info(f"loading {pretrained_path}")
+-    model.load_state_dict(
+-        torch.load(pretrained_path, map_location=device), assign=True)
++    # PATCH pipeline IA (2026-09-30) : VAE de ComfyUI (.safetensors fp16, memes cles) accepte, remis en fp32
++    if str(pretrained_path).endswith(".safetensors"):
++        from safetensors.torch import load_file
++        sd = {k: v.float() for k, v in load_file(pretrained_path, device=str(device)).items()}
++    else:
++        sd = torch.load(pretrained_path, map_location=device)
++    model.load_state_dict(sd, assign=True)
+ 
+     return model
+ 
+diff --git a/Wan2_2/wan/modules/vae2_2_new.py b/Wan2_2/wan/modules/vae2_2_new.py
+index d023e1f..a7e7e09 100755
+--- a/Wan2_2/wan/modules/vae2_2_new.py
++++ b/Wan2_2/wan/modules/vae2_2_new.py
+@@ -882,8 +882,13 @@ def _video_vae(pretrained_path=None, z_dim=16, dim=160, device="cpu", **kwargs):
+ 
+     # load checkpoint
+     logging.info(f"loading {pretrained_path}")
+-    model.load_state_dict(
+-        torch.load(pretrained_path, map_location=device), assign=True)
++    # PATCH pipeline IA (2026-09-30) : VAE de ComfyUI (.safetensors fp16, memes cles) accepte, remis en fp32
++    if str(pretrained_path).endswith(".safetensors"):
++        from safetensors.torch import load_file
++        sd = {k: v.float() for k, v in load_file(pretrained_path, device=str(device)).items()}
++    else:
++        sd = torch.load(pretrained_path, map_location=device)
++    model.load_state_dict(sd, assign=True)
+ 
+     return model
+ 
+diff --git a/Wan2_2/wan/ti2v.py b/Wan2_2/wan/ti2v.py
+index 437d6fb..c187818 100755
+--- a/Wan2_2/wan/ti2v.py
++++ b/Wan2_2/wan/ti2v.py
+@@ -86,7 +86,12 @@ class WanTI2V:
+         # self.param_dtype = config.param_dtype
+         self.param_dtype = torch.bfloat16
+ 
+-        self.text_encoder = T5EncoderModel(
++        # PATCH pipeline IA (2026-09-30) : RDMESH_SANS_T5=1 -> T5 (11 Go) non charge : R-DMesh n'utilise que le
++        # contexte nul pre-calcule (context_null.pt) quand aucun prompt n'est donne
++        if os.environ.get("RDMESH_SANS_T5") == "1":
++            self.text_encoder = None
++        else:
++          self.text_encoder = T5EncoderModel(
+             text_len=config.text_len,
+             dtype=config.t5_dtype,
+             # device=torch.device('cpu'),
+@@ -98,11 +103,37 @@ class WanTI2V:
+         self.vae_stride = config.vae_stride
+         self.patch_size = config.patch_size
+         self.vae = Wan2_2_VAE(
+-            vae_pth=os.path.join(checkpoint_dir, config.vae_checkpoint),
++            vae_pth=os.environ.get("RDMESH_VAE") or os.path.join(checkpoint_dir, config.vae_checkpoint),
+             device=self.device)
+ 
+         logging.info(f"Creating WanModel from {checkpoint_dir}")
+-        self.model = WanModel.from_pretrained(checkpoint_dir)
++        if os.environ.get("RDMESH_WAN_GGUF"):
++            # PATCH pipeline IA : modele Wan 2.2 5B depuis NOTRE GGUF Q8 (ComfyUI), dequantifie en bf16 a la volee, et
++            # seulement les RDMESH_WAN_BLOCS premiers blocs (R-DMesh s'arrete a la couche --dit_layers, 10 par defaut)
++            import json as _json
++            from gguf import GGUFReader, dequantize
++            cfg = _json.load(open(os.path.join(checkpoint_dir, "config.json")))
++            nb = int(os.environ.get("RDMESH_WAN_BLOCS", "11"))
++            cfg = {k: v for k, v in cfg.items() if not k.startswith("_")}
++            with torch.device("meta"):
++                self.model = WanModel(**cfg)
++            self.model.blocks = self.model.blocks[:nb]
++            from .modules.model import rope_params          # freqs = tenseur simple cree dans __init__ : hors du
++            d = cfg["dim"] // cfg["num_heads"]              # « meta », a recalculer sur CPU
++            self.model.freqs = torch.cat([rope_params(1024, d - 4 * (d // 6)), rope_params(1024, 2 * (d // 6)),
++                                          rope_params(1024, 2 * (d // 6))], dim=1)
++            sd = {}
++            for t in GGUFReader(os.environ["RDMESH_WAN_GGUF"]).tensors:
++                if t.name.startswith("blocks.") and int(t.name.split(".")[1]) >= nb:
++                    continue
++                arr = dequantize(t.data, t.tensor_type).reshape([int(x) for x in reversed(t.shape)])
++                sd[t.name] = torch.from_numpy(arr.copy()).to(torch.bfloat16)
++            manque = [k for k in self.model.state_dict() if k not in sd]
++            assert not manque, manque[:5]
++            self.model.load_state_dict(sd, assign=True, strict=False)
++            self.model.eval().requires_grad_(False)
++        else:
++            self.model = WanModel.from_pretrained(checkpoint_dir)
+ 
+             
+         self.model = self._configure_model(
+diff --git a/diffusion/rf_diffusion.py b/diffusion/rf_diffusion.py
+index e132062..7bb9216 100755
+--- a/diffusion/rf_diffusion.py
++++ b/diffusion/rf_diffusion.py
+@@ -1,3 +1,4 @@
++import os  # PATCH pipeline IA (RDMESH_BF16)
+ import torch
+ import torch.nn.functional as F
+ from torchdiffeq import odeint
+@@ -75,7 +76,13 @@ def rf_sample_vc_misalign(
+         x = torch.cat([x0_double, x[..., x0_channels:]], dim=-1)
+         if x1 is not None:
+             x[..., x0_channels:x0_channels+x1_channels] = x1_double
+-        flow = model(x, t.unsqueeze(0).repeat(x.shape[0]), **model_kwargs) 
++        if os.environ.get("RDMESH_BF16"):
++            # PATCH pipeline IA : précision mixte bf16 pour le DiT (cœurs Tensor) ; l'intégration ODE reste en float32
++            with torch.autocast("cuda", dtype=torch.bfloat16):
++                flow = model(x, t.unsqueeze(0).repeat(x.shape[0]), **model_kwargs)
++            flow = flow.float()
++        else:
++            flow = model(x, t.unsqueeze(0).repeat(x.shape[0]), **model_kwargs)
+         # cfg
+         cond_flow, uncond_flow = torch.split(flow, len(flow) // 2, dim=0)
+         flow = uncond_flow + guidance_scale * (cond_flow - uncond_flow)
+diff --git a/test_drive.py b/test_drive.py
+index 9051776..5234d27 100755
+--- a/test_drive.py
++++ b/test_drive.py
+@@ -77,7 +77,16 @@ class DyMeshDataset(Dataset):
+         }
+ 
+ 
++import time as _time, sys as _sys
++_T0 = _time.time()
++def _chrono(etape):  # PATCH pipeline IA : temps écoulé par étape, sur stderr (non bufferisé)
++    import os as _os
++    if _os.environ.get("RDMESH_CHRONO"):
++        _sys.stderr.write(f"[chrono] {_time.time() - _T0:7.1f} s  {etape}\n"); _sys.stderr.flush()
++
++
+ def main(opt):
++    _chrono("imports")
+     # Set device
+     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+     
+@@ -118,6 +127,7 @@ def main(opt):
+     opt.vae_exp = training_args["vae_exp_dependency"]
+     opt.vae_epoch = training_args["vae_epoch_dependency"]
+     print("Configuration loaded successfully.")
++    _chrono("config")  # PATCH pipeline IA : chronos (RDMESH_CHRONO=1)
+     
+     # Load rescale params
+     if opt.rescale:
+@@ -138,6 +148,7 @@ def main(opt):
+     vae_model = load_compatible_checkpoint(vae_model, vae_dir, device)
+     vae_model.eval()
+     print("RDMeshVAE loaded!!!")
++    _chrono("VAE")  # PATCH pipeline IA : chronos (RDMESH_CHRONO=1)
+     
+     # RDMeshDiT model
+     print("Loading RDMeshDiT Model...")
+@@ -146,6 +157,7 @@ def main(opt):
+     rf_model = load_compatible_checkpoint(rf_model, rf_model_dir, device)
+     rf_model.eval()
+     print("RDMeshDiT Model loaded!!!")
++    _chrono("DiT")  # PATCH pipeline IA : chronos (RDMESH_CHRONO=1)
+     
+     # Wan model
+     print("Loading Wan2.2-TI2V-5B...")
+@@ -156,6 +168,7 @@ def main(opt):
+         convert_model_dtype=True,
+     )
+     print("Wan loaded!!!")
++    _chrono("Wan 5B")  # PATCH pipeline IA : chronos (RDMESH_CHRONO=1)
+ 
+     # Test dataset
+     dataset = DyMeshDataset(
+@@ -167,7 +180,8 @@ def main(opt):
+         mesh_list=opt.mesh_list,
+         video_list=opt.video_list
+     )
+-    dataloader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=1, pin_memory=True, drop_last=False)
++    dataloader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0, pin_memory=True, drop_last=False)  # PATCH pipeline IA : workers KO sous Windows
++    _chrono("dataset")  # PATCH pipeline IA : chronos (RDMESH_CHRONO=1)
+  
+     with torch.no_grad():
+         for _, data in enumerate(dataloader):
+@@ -178,6 +192,7 @@ def main(opt):
+             
+             # Extract WAN latents
+             video_latents = wan_ti2v.v2l_sample(videos=video_tensor, seq_len=seq_len, samp_layers=opt.dit_layers, samp_ratio=opt.samp_ratio, ori_samp=opt.ori_samp)
++            _chrono("video -> latents (Wan)")  # PATCH pipeline IA : chronos (RDMESH_CHRONO=1)
+             for l in range(len(opt.dit_layers)):
+                 dit_tensor = torch.tensor(video_latents[f"layer_{opt.dit_layers[l]}"], dtype=torch.float32, device=device)
+                 if l == 0:
+@@ -206,11 +221,13 @@ def main(opt):
+             valid_length = valid_mask.sum(dim=-1)
+             adj_matrix = get_adjacency_matrix(vertices[:, 0], faces, valid_length)
+             adj_matrix_nhops = calc_n_hops(adj_matrix, num_hops=opt.num_hops, alpha_hops=opt.alpha_hops, mode=opt.hop_mode, no_norm=True)
++            _chrono("voisinage n-hops")  # PATCH pipeline IA : chronos (RDMESH_CHRONO=1)
+ 
+             # Encode with VAE
+             vertices_static = vertices[:, :1].repeat(1, vertices.shape[1], 1, 1)
+             num_traj = max(512, vertices.shape[2] // 8) if opt.num_traj < 0 else opt.num_traj
+             x_start = vae_model(vertices_static, vertices[:, 0], faces=faces, valid_mask=valid_mask, adj_matrix=adj_matrix_nhops, num_traj=num_traj, just_encode=True)
++            _chrono("encodage VAE")  # PATCH pipeline IA : chronos (RDMESH_CHRONO=1)
+             if opt.rescale:
+                 x0_start = (x_start[:, :, :opt.x0_channels] - x0_mean) / x0_std
+                 x1_start = (x_start[:, :, opt.x0_channels:opt.x0_channels+opt.x1_channels] - x1_mean) / x1_std
+@@ -237,6 +254,7 @@ def main(opt):
+                 x1=x1
+             )
+             print("RF sampling finished!!!")
++            _chrono("echantillonnage RF")  # PATCH pipeline IA : chronos (RDMESH_CHRONO=1)
+             
+             # DyMeshVAE decoding
+             if opt.rescale:
+@@ -244,12 +262,18 @@ def main(opt):
+                 x1_start_s = samples[..., opt.x0_channels:opt.x0_channels+opt.x1_channels] * x1_std + x1_mean
+                 xt_start_s = samples[..., -opt.xt_channels:] * xt_std + xt_mean 
+                 samples = torch.cat([x0_start_s, x1_start_s, xt_start_s], dim=-1)
+-            outputs = vae_model(vertices_static, vertices[:, 0], samples=samples, faces=faces, valid_mask=valid_mask, adj_matrix=adj_matrix_nhops, num_traj=opt.num_traj, just_decode=True)
++            outputs = vae_model(vertices_static, vertices[:, 0], samples=samples, faces=faces, valid_mask=valid_mask, adj_matrix=adj_matrix_nhops, num_traj=num_traj, just_decode=True)  # PATCH pipeline IA : opt.num_traj valait -1 (bug d origine)
++            _chrono("decodage VAE")  # PATCH pipeline IA : chronos (RDMESH_CHRONO=1)
+ 
+             # Render & Export
+             trajs = [outputs[0][:, idx].cpu()*v_max+center for idx in all_indices]
++            # PATCH pipeline IA (2026-09-30) : trajectoires des sommets sauvegardees (rendu / ajustement du rig ailleurs)
++            os.makedirs(video_save_dir, exist_ok=True)
++            torch.save({"trajs": trajs, "mesh_path": mesh_path, "video": video_name},
++                       os.path.join(video_save_dir, f"{os.path.basename(video_name)}_trajs.pt"))
+             file_format = mesh_path.split('.')[-1]
+-            drive_mesh_and_render_with_pkl(
++            if os.environ.get("RDMESH_SANS_RENDU") != "1":   # PATCH pipeline IA : rendu interne saute
++              drive_mesh_and_render_with_pkl(
+                 mesh_objects, 
+                 trajs, 
+                 "{}/{}".format(video_save_dir, video_name),

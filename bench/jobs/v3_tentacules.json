@@ -1,0 +1,11 @@
+{
+  "concept": "Full-body concept art of a sea monster for a video game: a bulbous purple octopus-like creature standing upright on four thick tentacles, with two more long tentacles held out to the sides like arms. With the tentacle on its right side it firmly grips a rusty iron sword, raised away from its body. Large yellow eyes, wet glossy skin with suckers. Rig-ready pose: every tentacle clearly separated from the others, the sword held away from the body. Seen strictly from the front: it faces the camera straight on. One single creature, centered, the whole body visible. Plain uniform light grey studio background, no floor, no ground, no pedestal, no cast shadow, soft even studio lighting.",
+  "desc_courte": "purple octopus sea monster standing on four thick tentacles, two tentacles held out like arms, one tentacle gripping a rusty iron sword",
+  "garde": "Keep the exact same creature: identical bulbous body, eyes, the same tentacles in the same pose, the same rusty iron sword gripped by the same tentacle, the same colours and glossy skin. Same plain uniform light grey studio background, same soft even studio lighting, same scale, the whole body visible, no floor, no cast shadow.",
+  "vues": {
+    "gauche": "Rotate the camera 90 degrees around the creature: show this exact same creature in a strict side profile view, its face turned towards the LEFT edge of the image.",
+    "droite": "Rotate the camera 90 degrees around the creature: show this exact same creature in a strict side profile view, its face turned towards the RIGHT edge of the image.",
+    "dos_precis": "Rotate the camera 180 degrees around the creature: show this exact same creature seen from directly behind. We see the back of its bulbous head and body and the backs of its tentacles, and the sword still gripped by the same tentacle. Its eyes are NOT visible."
+  },
+  "id": "v3_tentacules"
+}

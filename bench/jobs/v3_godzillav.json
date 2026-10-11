@@ -1,0 +1,12 @@
+{
+ "id": "v3_godzillav",
+ "concept": "Full-body concept art of Godzilla, the classic giant kaiju, seen strictly from the front: it faces the camera straight on, in a symmetrical standing pose. It stands upright on two massive, powerful legs, its small clawed arms held slightly away from the body. Its skin is rough, craggy and scaly, dark green. Three rows of large, jagged, bone-white dorsal plates run down its back; their tips stick out above its shoulders. Its long, heavy tail lies behind it and curls to one side so that the tip is visible next to its feet. Its jaws are wide open in a roar, showing its teeth. One single creature, centered, the whole body visible from head to feet. Plain uniform light grey studio background, no floor, no ground, no city, no pedestal, no cast shadow, soft even studio lighting.",
+ "desc_courte": "Godzilla, giant upright reptilian kaiju, dark green scaly skin, three rows of large jagged bone-white dorsal plates, thick long tail, powerful legs, small clawed arms, roaring open jaws",
+ "garde": "Keep the exact same creature: identical anatomy and proportions, the same dark green scaly skin, the same bone-white dorsal plates, the same long tail, the same colours and materials. Same plain uniform light grey studio background, same soft even studio lighting, same scale, the whole body visible from head to feet, no floor, no cast shadow.",
+ "vues": {
+  "gauche": "Rotate the camera 90 degrees around the creature: show this exact same creature in a strict side profile view, its body facing towards the LEFT edge of the image: its snout and open jaws point to the left, its dorsal plates are seen in profile along its back, and its long tail extends to the right behind it.",
+  "droite": "Rotate the camera 90 degrees around the creature: show this exact same creature in a strict side profile view, its body facing towards the RIGHT edge of the image: its snout and open jaws point to the right, its dorsal plates are seen in profile along its back, and its long tail extends to the left behind it.",
+  "dos_precis": "Rotate the camera 180 degrees around the creature: show this exact same creature seen from directly behind. We see its broad back with the three rows of bone-white dorsal plates running from the neck all the way down the tail, the back of its head, the backs of its legs and heels, and its tail coming towards the viewer. Its face and open jaws are NOT visible."
+ },
+ "note_video": "pipeline video concept (chaine_complete.sh) : vues tirees de la video de tour"
+}

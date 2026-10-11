@@ -1,0 +1,11 @@
+{
+  "id": "v3_tungtung",
+  "concept": "Full-body 3D character render of Tung Tung Tung Sahur, the Indonesian internet meme character: a tall anthropomorphic wooden log standing upright. Its body is one single tall cylinder of light brown carved wood with visible wood grain. At the top of the log a simple face is carved: two big round wide-open eyes and a wide flat grin. It has thin wooden arms and thin wooden legs, and it holds a wooden baseball bat in its right hand, the bat pointing down beside its leg. Seen strictly from the front: it faces the camera straight on, standing still. One single character, centered, the whole body visible from head to feet. Plain uniform light grey studio background, no floor, no pedestal, no cast shadow, soft even studio lighting.",
+  "desc_courte": "Tung Tung Tung Sahur, tall anthropomorphic wooden log character with a carved face, big round eyes, wide grin, thin wooden arms and legs, holding a wooden baseball bat",
+  "garde": "Keep the exact same character: the identical cylindrical wooden log body with the same wood grain and colour, the same thin wooden arms and legs, the same baseball bat held in the same hand, the same proportions. Same plain uniform light grey studio background, same soft even studio lighting, same scale, the whole body visible from head to feet, no floor, no cast shadow.",
+  "vues": {
+    "gauche": "Rotate the camera 90 degrees around the character: show this exact same character in a strict side profile view, its body facing towards the LEFT edge of the image: the carved eyes and grin are seen in profile on the left side of the log.",
+    "droite": "Rotate the camera 90 degrees around the character: show this exact same character in a strict side profile view, its body facing towards the RIGHT edge of the image: the carved eyes and grin are seen in profile on the right side of the log.",
+    "dos_precis": "Rotate the camera 180 degrees around the character: show this exact same character seen from directly behind. We see the plain back of the wooden log with its wood grain and NO face, the backs of its thin arms and legs, and the baseball bat still held in the same hand. The carved eyes and grin are NOT visible."
+  }
+}

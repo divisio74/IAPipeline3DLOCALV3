@@ -1,0 +1,27 @@
+# environnements Python
+.venv*/
+.pylib-qwen21/
+__pycache__/
+*.pyc
+
+# modèles et dépôts tiers (voir README §5)
+models/
+third_party/
+*.safetensors
+*.gguf
+*.ckpt
+*.pth
+*.pt
+
+# données générées
+bench/out/
+bench/inputs/
+bench/views/
+bench/views_couleur/
+bench/current/
+*.log
+
+# secrets
+.roblox_key
+.mcp.json
+.env

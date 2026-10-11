@@ -1,0 +1,11 @@
+{
+  "concept": "Full-body concept art of a giant monstrous spider for a video game. A dark brown hairy body made of a round abdomen and a smaller head with eight glowing red eyes and two large curved fangs. Eight long segmented hairy legs, spread wide apart symmetrically in a rig-ready pose: every leg clearly separated from the others and from the body, none touching or crossing, the body raised above the feet. Seen strictly from the front: it faces the camera straight on. One single creature, centered, the whole body visible. Plain uniform light grey studio background, no floor, no ground, no pedestal, no cast shadow, soft even studio lighting.",
+  "desc_courte": "giant monstrous spider, dark brown hairy body, round abdomen, eight long segmented hairy legs spread wide apart, two large fangs",
+  "garde": "Keep the exact same creature: identical body, abdomen, eyes, fangs, the same eight legs spread wide apart in the same pose, the same colours and hair. Same plain uniform light grey studio background, same soft even studio lighting, same scale, the whole body visible, no floor, no cast shadow.",
+  "vues": {
+    "gauche": "Rotate the camera 90 degrees around the creature: show this exact same spider in a strict side profile view, its head facing towards the LEFT edge of the image and its abdomen towards the right; its legs on the near side are seen spread out.",
+    "droite": "Rotate the camera 90 degrees around the creature: show this exact same spider in a strict side profile view, its head facing towards the RIGHT edge of the image and its abdomen towards the left; its legs on the near side are seen spread out.",
+    "dos_precis": "Rotate the camera 180 degrees around the creature: show this exact same spider seen from directly behind. We see the back of its round hairy abdomen in the centre and its eight legs spread wide on both sides. Its eyes and fangs are NOT visible."
+  },
+  "id": "v3_araignee"
+}

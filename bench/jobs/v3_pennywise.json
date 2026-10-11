@@ -1,0 +1,11 @@
+{
+  "id": "v3_pennywise",
+  "concept": "Full-body concept art of Pennywise the Dancing Clown in his monstrous form. A tall, thin clown in a puffy, ruffled, off-white vintage clown costume with orange pom-pom buttons and a large ruffled collar. White face paint with red lines running up from the eyes, a bulging forehead, tufts of red hair on the sides of his head. His mouth is stretched impossibly wide open: a huge gaping monstrous maw splits the lower half of his face, filled with rows of sharp needle-like teeth. Long thin arms with clawed white gloves. Seen strictly from the front: he faces the camera straight on, in a symmetrical standing pose. One single character, centered, the whole body visible from head to feet. Plain uniform light grey studio background, no floor, no balloons, no pedestal, no cast shadow, soft even studio lighting.",
+  "desc_courte": "Pennywise the clown monster, puffy ruffled clown costume with pom-pom buttons, huge gaping mouth wide open with rows of sharp teeth, long thin arms with clawed gloves",
+  "garde": "Keep the exact same character: identical proportions, the same puffy ruffled off-white clown costume with orange pom-pom buttons and ruffled collar, the same face paint, the same red hair tufts, the same huge gaping mouth wide open with rows of sharp teeth, the same clawed gloves. Same plain uniform light grey studio background, same soft even studio lighting, same scale, the whole body visible from head to feet, no floor, no cast shadow.",
+  "vues": {
+    "gauche": "Rotate the camera 90 degrees around the character: show this exact same character in a strict side profile view, his body facing towards the LEFT edge of the image: his huge gaping open mouth and his forehead are seen in profile on the left.",
+    "droite": "Rotate the camera 90 degrees around the character: show this exact same character in a strict side profile view, his body facing towards the RIGHT edge of the image: his huge gaping open mouth and his forehead are seen in profile on the right.",
+    "dos_precis": "Rotate the camera 180 degrees around the character: show this exact same character seen from directly behind. We see the back of his bald head with the red hair tufts on its sides, the back of the ruffled collar and of the puffy costume, the backs of his arms and legs. His face and gaping mouth are NOT visible."
+  }
+}
